@@ -1,0 +1,36 @@
+---
+# tasks file for ulvida.dedibox_rpn
+
+- name: Install open-iscsi
+  ansible.builtin.package:
+    name: open-iscsi
+    state: present
+
+- name: Adjust iscsi parameters
+  ansible.builtin.lineinfile:
+    path: /etc/iscsi/iscsid.conf
+    regexp: '{{ dedibox_iscsi_config.regexp }}'
+    line: '{{ dedibox_iscsi_config.line }}'
+    state: present
+  loop:
+  - regexp: '#?node\.startup'
+    line: node.startup = automatic
+  - regexp: '#?node\.conn\[0\]\.timeo\.noop_out_interval'
+    line: node.conn[0].timeo.noop_out_interval = 0
+  - regexp: '#?node\.conn\[0\]\.timeo\.noop_out_timeout'
+    line: node.conn[0].timeo.noop_out_timeout = 0
+  - regexp: '#?node\.session\.timeo\.replacement_timeout'
+    line: node.session.timeo.replacement_timeout = 86400
+  - regexp: '#?node\.conn\[0\]\.iscsi\.HeaderDigest'
+    line: node.conn[0].iscsi.HeaderDigest = CRC32C,None
+  - regexp: '#?node\.conn\[0\]\.iscsi\.DataDigest'
+    line: node.conn[0].iscsi.DataDigest = CRC32C,None
+  loop_control:
+    loop_var: dedibox_iscsi_config
+  notify: reboot dedibox
+
+#  vars:
+#    dedibox_iscsi_config:
+
+
+...
